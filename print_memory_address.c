@@ -1,26 +1,48 @@
 #include "main.h"
-
 /**
- * print_mem_address - prints memory address of an input
- * in hexadecimal format
- * @b: va_list arguments from _printf
- * @a: pointer to the struct flags
- * Return: number of characters printed
+ * handle_print - a function that prints an argument based on its type
+ * @fmt: the ormatted string in which to print the arguments
+ * @list: List of arguments to be printed.
+ * @ind: ind.
+ * @buffer: Buffer array to handle print.
+ * @flags: Calculates active flags
+ * @width: get width.
+ * @precision: Precision specification
+ * @size: Size specifier
+ * Return: 1 or 2;
  */
-int print_mem_address(va_list b, flags_t *a)
+int handle_print(const char *fmt, int *ind, va_list list, char buffer[],
+int flags, int width, int precision, int size)
 {
-	char *s;
-	unsigned long int p = va_arg(b, unsigned long int);
-
-	int count = 0;
-
-	if (a->precision == 0 && p == 0)
-		return (_puts(""));
-	if (!p)
-		return (_puts("(nil)"));
-	s = convert(p, 16, 1, a);
-	count += _puts("0x");
-	count += _puts(s);
-
-	return (count);
+int i, unknow_len = 0, printed_chars = -1;
+fmt_t fmt_types[] = {
+{'c', print_char}, {'s', print_string}, {'%', print_percent},
+{'i', print_int}, {'d', print_int}, {'b', print_binary},
+{'u', print_unsigned}, {'o', print_octal}, {'x', print_hexadecimal},
+{'X', print_hexa_upper}, {'p', print_pointer}, {'S', print_non_printable},
+{'r', print_reverse}, {'R', print_rot13string}, {'\0', NULL}
+};
+for (i = 0; fmt_types[i].fmt != '\0'; i++)
+if (fmt[*ind] == fmt_types[i].fmt)
+return (fmt_types[i].fn(list, buffer, flags, width, precision, size));
+if (fmt_types[i].fmt == '\0')
+{
+if (fmt[*ind] == '\0')
+return (-1);
+unknow_len += write(1, "%%", 1);
+if (fmt[*ind - 1] == ' ')
+unknow_len += write(1, " ", 1);
+else if (width)
+{
+--(*ind);
+while (fmt[*ind] != ' ' && fmt[*ind] != '%')
+--(*ind);
+if (fmt[*ind] == ' ')
+--(*ind);
+return (1);
+}
+unknow_len += write(1, &fmt[*ind], 1);
+return (unknow_len);
+}
+return (printed_chars);
 }
