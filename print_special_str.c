@@ -1,118 +1,158 @@
 #include "main.h"
 
+/************************* PRINT UNSIGNED NUMBER *************************/
 /**
- * print_nonprint_char - prints non printable characters
- * @b: va_list argumnets from _printf
- * @a: pointer to the struct flags
- * Return: number of characters
+ * print_unsigned - Prints an unsigned number
+ * @types: List a of argument
+ * @buffer: Buffer array to handle prints
+ * @flags:  Calculates active flags
+ * @width: gets the width
+ * @precision: Precision specification
+ * @size: Size specifier
+ * Return: Number of chars printed.
  */
-int print_nonprint_char(va_list b, flags_t *a)
+int print_unsigned(va_list types, char buffer[],
+int flags, int width, int precision, int size)
 {
-	int x, count = 0;
-	char *r;
-	char *s = va_arg(b, char *);
+int i = BUFF_SIZE - 2;
+unsigned long int num = va_arg(types, unsigned long int);
 
-	if (!s)
-		return (_puts("(null)"));
+num = convert_size_unsgnd(num, size);
 
-	for (x = 0; s[x]; x++)
-	{
-		if (s[x] > 0 && (s[x] < 32 || s[x] >= 127))
-		{
-			_puts("\\x");
-			count += 2;
-			r = convert(s[x], 16, 0, a);
-			if (!r[1])
-				count += _putchar('0');
-			count += _puts(r);
-		}
-		else
-			count += _putchar(s[x]);
-	}
-	return (count);
+if (num == 0)
+buffer[i--] = '0';
+
+buffer[BUFF_SIZE - 1] = '\0';
+
+while (num > 0)
+{
+buffer[i--] = (num % 10) + '0';
+num /= 10;
 }
 
-/**
- * print_rev - prints a string in reverse
- * @b: argument from _printf
- * @a: pointer to the struct flags
- * Return: length of the printed string
- */
-int print_rev(va_list b, flags_t *a)
-{
-	int x = 0, y;
-	char *s = va_arg(b, char *);
+i++;
 
-	if (!s)
-		s = "(null)";
-
-	while (s[x])
-		x++;
-	if (a->minus == 1)
-	{
-		for (y = x - 1; y >= 0; y--)
-			_putchar(s[y]);
-		while (x < a->width)
-		{
-			_putchar(' ');
-			x++;
-		}
-	}
-	else
-	{
-		while (x < a->width)
-		{
-			_putchar(' ');
-			x++;
-		}
-	}
-	for (y = x - 1; y >= 0; y--)
-	return (x);
+return (write_unsgnd(0, i, buffer, flags, width, precision, size));
 }
 
+/************* PRINT UNSIGNED NUMBER IN OCTAL  ****************/
 /**
- * print_rot13 - prints a string using rot13
- * @b: list of arguments from _printf
- * @a: pointer to the struct flags
- * Return: length of the printed string
+ * print_octal - Prints an unsigned number in octal notation
+ * @types: Lista of arguments
+ * @buffer: Buffer array to handle print
+ * @flags:  Calculates active flags
+ * @width: get width
+ * @precision: Precision specifications
+ * @size: Size specifier
+ * Return: Number of chars printed
  */
-int print_rot13(va_list b, flags_t *a)
+int print_octal(va_list types, char buffer[],
+int flags, int width, int precision, int size)
 {
-	int x, y;
-	char rot13[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-	char ROT13[] = "nopqrstuvwxyzabcdefghijklmNOPQRSTUVWXYZABCDEFGHIJKLM";
-	char *s = va_arg(b, char *);
 
-	(void)a;
+int i = BUFF_SIZE - 2;
+unsigned long int num = va_arg(types, unsigned long int);
+unsigned long int init_num = num;
 
-	for (y = 0; s[y]; y++)
-	{
-		if (s[y] < 'A' || (s[y] > 'Z' && s[y] < 'a') || s[y] > 'z')
-			_putchar(s[y]);
-		else
-		{
-			for (x = 0; x <= 52; x++)
-			{
-				if (s[y] == rot13[x])
-					_putchar(ROT13[x]);
-			}
-		}
-	}
-	return (y);
+UNUSED(width);
 
+num = convert_size_unsgnd(num, size);
+
+if (num == 0)
+buffer[i--] = '0';
+
+buffer[BUFF_SIZE - 1] = '\0';
+
+while (num > 0)
+{
+buffer[i--] = (num % 8) + '0';
+num /= 8;
+}
+if (flags & F_HASH && init_num != 0)
+buffer[i--] = '0';
+i++;
+return (write_unsgnd(0, i, buffer, flags, width, precision, size));
 }
 
+/************** PRINT UNSIGNED NUMBER IN HEXADECIMAL **************/
 /**
- * print_percent_sign - prints the percent sign
- * @b: va_list arguments from _printf
- * @a: pointer to the struct flags
- * Return: number of char printed
+ * print_hexadecimal - Print an unsigned number in hexadecimal notation
+ * @types: Lista of arguments
+ * @buffer: Buffer array to handle print
+ * @flags:  Calculates active flags
+ * @width: get width
+ * @precision: Precision specification
+ * @size: Size specifier
+ * Return: Number of chars printed
  */
-int print_percent_sign(va_list b, flags_t *a)
+int print_hexadecimal(va_list types, char buffer[],
+int flags, int width, int precision, int size)
 {
-	(void)b;
-	(void)a;
-
-	return (_putchar('%'));
+return (print_hexa(types, "0123456789abcdef", buffer,
+flags, 'x', width, precision, size));
 }
 
+/************* PRINT UNSIGNED NUMBER IN UPPER HEXADECIMAL **************/
+/**
+ * print_hexa_upper - Print an unsigned number in upper hexadecimal notation
+ * @types: Lista of arguments
+ * @buffer: Buffer array to handle print
+ * @flags:  Calculates active flags
+ * @width: get width
+ * @precision: Precision specification
+ * @size: Size specifier
+ * Return: Number of chars printed
+ */
+int print_hexa_upper(va_list types, char buffer[],
+int flags, int width, int precision, int size)
+{
+return (print_hexa(types, "0123456789ABCDEF", buffer,
+flags, 'X', width, precision, size));
+}
+
+/************** PRINT HEXX NUM IN LOWER OR UPPER **************/
+/**
+ * print_hexa - Prints an hexadecimal number in lower or upper
+ * @types: Lista of arguments
+ * @map_to: Array of values to map the number to
+ * @buffer: Buffer array to handle print
+ * @flags:  Calculates active flags
+ * @flag_ch: Calculates active flags
+ * @width: get width
+ * @precision: Precision specification
+ * @size: Size specifier
+ * @size: Size specification
+ * Return: Number of chars printed
+ */
+int print_hexa(va_list types, char map_to[], char buffer[],
+int flags, char flag_ch, int width, int precision, int size)
+{
+int i = BUFF_SIZE - 2;
+unsigned long int num = va_arg(types, unsigned long int);
+unsigned long int init_num = num;
+
+UNUSED(width);
+
+num = convert_size_unsgnd(num, size);
+
+if (num == 0)
+buffer[i--] = '0';
+
+buffer[BUFF_SIZE - 1] = '\0';
+
+while (num > 0)
+{
+buffer[i--] = map_to[num % 16];
+num /= 16;
+}
+
+if (flags & F_HASH && init_num != 0)
+{
+buffer[i--] = flag_ch;
+buffer[i--] = '0';
+}
+
+i++;
+
+return (write_unsgnd(0, i, buffer, flags, width, precision, size));
+}
